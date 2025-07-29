@@ -14,6 +14,33 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
+// Handle navigation from other pages
+window.addEventListener('DOMContentLoaded', function() {
+    // Check if there's a hash in the URL
+    if (window.location.hash) {
+        // Wait a bit for the page to load
+        setTimeout(() => {
+            const target = document.querySelector(window.location.hash);
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }, 100);
+    }
+    
+    // Update active navigation
+    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.classList.remove('active');
+        const href = link.getAttribute('href');
+        if (href === currentPage || (currentPage === 'index.html' && href === '#inicio')) {
+            link.classList.add('active');
+        }
+    });
+});
+
 // Header scroll effect
 window.addEventListener('scroll', function() {
     const header = document.querySelector('header');
@@ -113,13 +140,68 @@ window.addEventListener('load', function() {
     document.body.classList.add('loaded');
 });
 
-// Add parallax effect to hero section
-window.addEventListener('scroll', function() {
-    const scrolled = window.pageYOffset;
-    const hero = document.querySelector('.hero');
-    const speed = 0.5;
+// Remove parallax effect to prevent overlap issues
+
+// Handle join form submission
+const joinForm = document.getElementById('joinForm');
+if (joinForm) {
+    joinForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const submitButton = e.target.querySelector('.submit-button');
+        
+        // Disable submit button
+        submitButton.disabled = true;
+        submitButton.textContent = 'Enviando...';
+        
+        // Simulate form submission
+        setTimeout(() => {
+            // Show success message
+            showJoinFormMessage('success', '¡Excelente! Hemos recibido tu solicitud. Un líder de Team Diamond te contactará en las próximas 24-48 horas para iniciar tu proceso.');
+            
+            // Reset form
+            e.target.reset();
+            
+            // Re-enable submit button
+            submitButton.disabled = false;
+            submitButton.textContent = 'Enviar Solicitud';
+            
+            // Scroll to form
+            document.querySelector('.join-form-section').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }, 2000);
+    });
+}
+
+function showJoinFormMessage(type, message) {
+    // Remove any existing messages
+    const existingMessages = document.querySelectorAll('.form-message');
+    existingMessages.forEach(msg => msg.remove());
     
-    if (hero) {
-        hero.style.transform = `translateY(${scrolled * speed}px)`;
-    }
-});
+    // Create new message element
+    const messageElement = document.createElement('div');
+    messageElement.className = `form-message ${type}-message`;
+    messageElement.textContent = message;
+    messageElement.style.cssText = `
+        background: ${type === 'success' ? '#4caf50' : '#f44336'};
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        text-align: center;
+        margin-top: 1rem;
+        animation: fadeInUp 0.5s ease;
+    `;
+    
+    // Insert message after form
+    const form = document.getElementById('joinForm');
+    form.parentNode.insertBefore(messageElement, form.nextSibling);
+    
+    // Remove message after 5 seconds
+    setTimeout(() => {
+        messageElement.style.opacity = '0';
+        setTimeout(() => messageElement.remove(), 300);
+    }, 5000);
+}
