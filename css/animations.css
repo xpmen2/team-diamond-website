@@ -145,21 +145,21 @@
     width: 100%;
 }
 
-/* Blur reveal animation for images */
-.blur-reveal {
-    overflow: hidden;
-    position: relative;
+/* Slide from right animation - more subtle */
+.slide-from-right {
+    transform: translateX(30px);
+    opacity: 0;
+    transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.blur-reveal img {
-    filter: blur(20px);
-    transform: scale(1.1);
-    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+.slide-from-right.animated {
+    transform: translateX(0);
+    opacity: 1;
 }
 
-.blur-reveal.animated img {
-    filter: blur(0);
-    transform: scale(1);
+/* Add delay for better effect */
+.join-image.slide-from-right {
+    transition-delay: 0.3s;
 }
 
 /* Gradient animation for backgrounds */
@@ -216,20 +216,47 @@
     box-shadow: 0 0 30px rgba(255, 140, 0, 0.3);
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-    
-    .animate-on-scroll,
-    .stagger-animation {
-        opacity: 1 !important;
-        transform: none !important;
-    }
+/* Animation reset state */
+.animate-on-scroll:not(.animated):not(.animate-once) {
+    opacity: 0 !important;
+}
+
+.fade-up:not(.animated):not(.animate-once) {
+    transform: translateY(30px) !important;
+}
+
+.fade-down:not(.animated):not(.animate-once) {
+    transform: translateY(-30px) !important;
+}
+
+.fade-left:not(.animated):not(.animate-once) {
+    transform: translateX(30px) !important;
+}
+
+.fade-right:not(.animated):not(.animate-once) {
+    transform: translateX(-30px) !important;
+}
+
+.scale-up:not(.animated):not(.animate-once) {
+    transform: scale(0.9) !important;
+}
+
+.rotate-in:not(.animated):not(.animate-once) {
+    transform: rotate(-5deg) scale(0.9) !important;
+}
+
+.slide-from-right:not(.animated):not(.animate-once) {
+    transform: translateX(30px) !important;
+    opacity: 0 !important;
+}
+
+.stagger-animation:not(.animated):not(.animate-once) {
+    opacity: 0 !important;
+    transform: translateY(20px) !important;
+}
+
+/* Special styles for stats counters */
+.counter.animate-once {
+    opacity: 1;
+    transition: none;
 }

@@ -4,15 +4,22 @@
     
     // Configuration
     const config = {
-        rootMargin: '0px 0px -100px 0px',
-        threshold: 0.1,
+        rootMargin: '-50px 0px -100px 0px', // Ajustado para mejor detección
+        threshold: [0, 0.1, 0.5, 1], // Múltiples umbrales para mejor precisión
         mobileReducedMotion: window.matchMedia('(max-width: 768px)').matches
     };
+    
+    // Track scroll direction
+    let lastScrollTop = 0;
+    let scrollDirection = 'down';
     
     // Initialize animations
     function initScrollAnimations() {
         // Add animation classes to elements
         addAnimationClasses();
+        
+        // Check initial viewport elements
+        checkInitialViewport();
         
         // Create intersection observer
         const animationObserver = new IntersectionObserver(handleIntersection, {
@@ -21,8 +28,11 @@
         });
         
         // Observe all animatable elements
-        const animatableElements = document.querySelectorAll('.animate-on-scroll, .stagger-animation, .counter, .line-animation, .blur-reveal, .text-reveal, .glow-on-scroll');
-        animatableElements.forEach(el => animationObserver.observe(el));
+        const animatableElements = document.querySelectorAll('.animate-on-scroll, .stagger-animation, .counter, .line-animation, .slide-from-right, .text-reveal, .glow-on-scroll');
+        animatableElements.forEach(el => {
+            el.observer = animationObserver;
+            animationObserver.observe(el);
+        });
         
         // Initialize parallax scrolling
         initParallax();
@@ -32,6 +42,51 @@
         
         // Initialize floating animations
         initFloatingAnimations();
+        
+        // Track scroll direction
+        window.addEventListener('scroll', throttle(function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            scrollDirection = scrollTop > lastScrollTop ? 'down' : 'up';
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        }, 50));
+    }
+    
+    // Check and animate elements in initial viewport
+    function checkInitialViewport() {
+        // Small delay to ensure proper page load
+        setTimeout(() => {
+            const viewportHeight = window.innerHeight;
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Get all animatable elements
+            const animatableElements = document.querySelectorAll('.animate-on-scroll, .stagger-animation, .counter, .slide-from-right');
+            
+            animatableElements.forEach(element => {
+                const rect = element.getBoundingClientRect();
+                const elementTop = rect.top + scrollTop;
+                const elementBottom = elementTop + rect.height;
+                
+                // Check if element is in current viewport or above it
+                if (elementTop <= scrollTop + viewportHeight) {
+                    // Element is visible or above current scroll position
+                    element.classList.add('animated');
+                    
+                    // Handle counters specially - ensure they show final value
+                    if (element.classList.contains('counter')) {
+                        const targetText = element.getAttribute('data-target');
+                        if (targetText) {
+                            // For stats counters that are already visible on page load,
+                            // show the final value immediately
+                            if (element.closest('.stats')) {
+                                element.innerText = targetText;
+                            } else {
+                                animateCounter(element);
+                            }
+                        }
+                    }
+                }
+            });
+        }, 100);
     }
     
     // Add animation classes to elements
@@ -75,9 +130,10 @@
             }
         });
         
-        // Stats
-        document.querySelectorAll('.stat-item h3').forEach(stat => {
-            stat.classList.add('counter');
+        // Stats - mark as animate-once
+        document.querySelectorAll('.stat-item').forEach(stat => {
+            stat.classList.add('animate-once');
+            stat.querySelector('h3')?.classList.add('counter', 'animate-once');
         });
         
         // CTA sections
@@ -96,17 +152,40 @@
     // Handle intersection observer callback
     function handleIntersection(entries) {
         entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('animated');
-                
-                // Special handling for counters
-                if (entry.target.classList.contains('counter')) {
-                    animateCounter(entry.target);
+            // Check if element should animate only once
+            const isAnimateOnce = entry.target.classList.contains('animate-once') || entry.target.closest('.stats');
+            
+            if (isAnimateOnce) {
+                // Animate only once behavior
+                if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
+                    entry.target.classList.add('animated');
+                    
+                    // Animate counter if it's a counter element
+                    if (entry.target.classList.contains('counter')) {
+                        animateCounter(entry.target);
+                    }
                 }
-                
-                // Stop observing after animation
-                if (!entry.target.classList.contains('parallax-element')) {
-                    entry.target.observer?.unobserve(entry.target);
+            } else {
+                // Normal repeating animation behavior
+                if (entry.isIntersecting) {
+                    // Always animate when entering viewport, regardless of scroll direction
+                    // unless it's already animated and we're scrolling up
+                    if (!entry.target.classList.contains('animated') || scrollDirection === 'down') {
+                        entry.target.classList.add('animated');
+                        
+                        // Special handling for counters
+                        if (entry.target.classList.contains('counter')) {
+                            animateCounter(entry.target);
+                        }
+                    }
+                } else if (!entry.isIntersecting && scrollDirection === 'up') {
+                    // Only reset when scrolling up and element leaves viewport
+                    entry.target.classList.remove('animated');
+                    
+                    // Reset counters
+                    if (entry.target.classList.contains('counter')) {
+                        resetCounter(entry.target);
+                    }
                 }
             }
         });
@@ -114,7 +193,12 @@
     
     // Animate number counters
     function animateCounter(element) {
-        const text = element.innerText;
+        // Don't animate if already animating
+        if (element.dataset.animating === 'true') return;
+        
+        element.dataset.animating = 'true';
+        
+        const text = element.getAttribute('data-target') || element.innerText;
         const hasPercentage = text.includes('%');
         const hasPlus = text.includes('+');
         const target = parseInt(text.replace(/[^0-9]/g, ''));
@@ -129,16 +213,39 @@
                 if (hasPercentage) displayValue += '%';
                 if (hasPlus) displayValue += '+';
                 element.innerText = displayValue;
-                requestAnimationFrame(updateCounter);
+                element.animationFrame = requestAnimationFrame(updateCounter);
             } else {
                 let finalValue = target;
                 if (hasPercentage) finalValue += '%';
                 if (hasPlus) finalValue += '+';
                 element.innerText = finalValue;
+                element.dataset.animating = 'false';
+                delete element.animationFrame;
             }
         };
         
         updateCounter();
+    }
+    
+    // Reset counter to initial state
+    function resetCounter(element) {
+        // Cancel any ongoing animation
+        if (element.animationFrame) {
+            cancelAnimationFrame(element.animationFrame);
+            delete element.animationFrame;
+        }
+        element.dataset.animating = 'false';
+        
+        const targetText = element.getAttribute('data-target');
+        if (targetText) {
+            if (targetText.includes('%')) {
+                element.innerText = '0%';
+            } else if (targetText.includes('+')) {
+                element.innerText = '0+';
+            } else {
+                element.innerText = '0';
+            }
+        }
     }
     
     // Initialize counters
@@ -203,6 +310,33 @@
             }
         };
     }
+    
+    // Ensure all counters reach their final value
+    function ensureCountersComplete() {
+        document.querySelectorAll('.counter.animated').forEach(counter => {
+            const targetText = counter.getAttribute('data-target');
+            if (targetText && counter.innerText !== targetText) {
+                // Force counter to show final value
+                counter.innerText = targetText;
+                counter.dataset.animating = 'false';
+                if (counter.animationFrame) {
+                    cancelAnimationFrame(counter.animationFrame);
+                    delete counter.animationFrame;
+                }
+            }
+        });
+    }
+    
+    // Add visibility change handler to ensure counters complete
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+            ensureCountersComplete();
+        }
+    });
+    
+    // Also check on window blur/focus
+    window.addEventListener('blur', ensureCountersComplete);
+    window.addEventListener('focus', ensureCountersComplete);
     
     // Check for reduced motion preference
     function checkReducedMotion() {
