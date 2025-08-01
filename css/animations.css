@@ -1,0 +1,235 @@
+/* Scroll Animation Styles */
+
+/* Base animation classes */
+.animate-on-scroll {
+    opacity: 0;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-on-scroll.animated {
+    opacity: 1;
+}
+
+/* Fade animations */
+.fade-up {
+    transform: translateY(30px);
+}
+
+.fade-up.animated {
+    transform: translateY(0);
+}
+
+.fade-down {
+    transform: translateY(-30px);
+}
+
+.fade-down.animated {
+    transform: translateY(0);
+}
+
+.fade-left {
+    transform: translateX(30px);
+}
+
+.fade-left.animated {
+    transform: translateX(0);
+}
+
+.fade-right {
+    transform: translateX(-30px);
+}
+
+.fade-right.animated {
+    transform: translateX(0);
+}
+
+/* Scale animations */
+.scale-up {
+    transform: scale(0.9);
+}
+
+.scale-up.animated {
+    transform: scale(1);
+}
+
+/* Rotate animations */
+.rotate-in {
+    transform: rotate(-5deg) scale(0.9);
+}
+
+.rotate-in.animated {
+    transform: rotate(0) scale(1);
+}
+
+/* Blur animations */
+.blur-in {
+    filter: blur(5px);
+}
+
+.blur-in.animated {
+    filter: blur(0);
+}
+
+/* Stagger animations for grid items */
+.stagger-animation {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stagger-animation.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Delay classes for staggered animations */
+.delay-1 { transition-delay: 0.1s; }
+.delay-2 { transition-delay: 0.2s; }
+.delay-3 { transition-delay: 0.3s; }
+.delay-4 { transition-delay: 0.4s; }
+.delay-5 { transition-delay: 0.5s; }
+.delay-6 { transition-delay: 0.6s; }
+
+/* Number counter animation */
+.counter {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s ease;
+}
+
+.counter.animated {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Floating animation for icons */
+@keyframes float-icon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.float-animation {
+    animation: float-icon 3s ease-in-out infinite;
+}
+
+/* Pulse animation for CTA buttons */
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 140, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 140, 0, 0); }
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+/* Slide line animation */
+.line-animation {
+    position: relative;
+    overflow: hidden;
+}
+
+.line-animation::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: var(--gradient-orange);
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.line-animation.animated::after {
+    width: 100%;
+}
+
+/* Blur reveal animation for images */
+.blur-reveal {
+    overflow: hidden;
+    position: relative;
+}
+
+.blur-reveal img {
+    filter: blur(20px);
+    transform: scale(1.1);
+    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.blur-reveal.animated img {
+    filter: blur(0);
+    transform: scale(1);
+}
+
+/* Gradient animation for backgrounds */
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.gradient-animation {
+    background-size: 200% 200%;
+    animation: gradient-shift 15s ease infinite;
+}
+
+/* Parallax scrolling effect */
+.parallax-element {
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Text reveal animation */
+.text-reveal {
+    position: relative;
+    overflow: hidden;
+}
+
+.text-reveal span {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(100%);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.text-reveal.animated span {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Hover lift effect for cards */
+.hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Glow effect on scroll */
+.glow-on-scroll {
+    transition: all 0.8s ease;
+}
+
+.glow-on-scroll.animated {
+    box-shadow: 0 0 30px rgba(255, 140, 0, 0.3);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .animate-on-scroll,
+    .stagger-animation {
+        opacity: 1 !important;
+        transform: none !important;
+    }
+}
